@@ -1,4 +1,4 @@
-import java.net.*;
+//import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
 
@@ -15,95 +15,146 @@ import java.security.cert.*;
  */
 
 public class client {
-  public static void main(String[] args) throws Exception {
-    String host = null;
-    int port = -1;
-    for (int i = 0; i < args.length; i++) {
-      System.out.println("args[" + i + "] = " + args[i]);
-    }
-    if (args.length < 1) {
-      System.out.println("USAGE: java client [host] port");
-      System.exit(-1);
-    }
-    try { /* get input parameters */
-      if (args.length == 1) port = Integer.parseInt(args[0]);
-      else {
-        host = args[0];
-        port = Integer.parseInt(args[1]);
-      }
-    } catch (IllegalArgumentException e) {
-      System.out.println("USAGE: java client [host] port");
-      System.exit(-1);
-    }
-
-    try {
-      SSLSocketFactory factory = null;
-      try {
-        char[] password = "password".toCharArray();
-        KeyStore ks = KeyStore.getInstance("JKS");
-        KeyStore ts = KeyStore.getInstance("JKS");
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-        SSLContext ctx = SSLContext.getInstance("TLSv1.2");
-        // keystore password (storepass)
-        ks.load(new FileInputStream("clientkeystore"), password);  
-        // truststore password (storepass);
-        ts.load(new FileInputStream("clienttruststore"), password); 
-        kmf.init(ks, password); // user password (keypass)
-        tmf.init(ts); // keystore can be used as truststore here
-        ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-        factory = ctx.getSocketFactory();
-      } catch (Exception e) {
-        throw new IOException(e.getMessage());
-      }
-      SSLSocket socket = (SSLSocket)factory.createSocket(host, port);
-      System.out.println("\nsocket before handshake:\n" + socket + "\n");
-
-      /*
-       * send http request
-       *
-       * See SSLSocketClient.java for more information about why
-       * there is a forced handshake here when using PrintWriters.
-       */
-
-      socket.startHandshake();
-      SSLSession session = socket.getSession();
-      Certificate[] cert = session.getPeerCertificates();
-      String subject = ((X509Certificate) cert[0]).getSubjectX500Principal().getName();
-      String issuer = ((X509Certificate) cert[0]).getIssuerX500Principal().getName(); // Added in question 4
-      String serial = ((X509Certificate) cert[0]).getSerialNumber().toString(); // Added in question 5
-      System.out.println("certificate name (subject DN field) on certificate received from server:\n" + subject + "\n");
-      System.out.println("Issuer: " + issuer); // Added in question 4
-      System.out.println("Serial: " + serial); // Added in question 5
-      System.out.println("socket after handshake:\n" + socket + "\n");
-      System.out.println("secure connection established\n\n");
-
-      // Added in project 2 to see protocol and cipher suite
-      System.out.println("Protocol: " + session.getProtocol());
-      System.out.println("Cipher suite: " + session.getCipherSuite());
-
-      BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
-      PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-      BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      String msg;
-      for (;;) {
-        System.out.print(">");
-        msg = read.readLine();
-        if (msg.equalsIgnoreCase("quit")) {
-          break;
+    public static void main(String[] args) throws Exception {
+        String host = null;
+        int port = -1;
+        for (int i = 0; i < args.length; i++) {
+            System.out.println("args[" + i + "] = " + args[i]);
         }
-        System.out.print("sending '" + msg + "' to server...");
-        out.println(msg);
-        out.flush();
-        System.out.println("done");
-        System.out.println("received '" + in.readLine() + "' from server\n");
-      }
-      in.close();
-      out.close();
-      read.close();
-      socket.close();
-    } catch (Exception e) {
-      e.printStackTrace();
+        if (args.length < 1) {
+            System.out.println("USAGE: java client [host] port");
+            System.exit(-1);
+        }
+        try { /* get input parameters */
+            if (args.length == 1)
+                port = Integer.parseInt(args[0]);
+            else {
+                host = args[0];
+                port = Integer.parseInt(args[1]);
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("USAGE: java client [host] port");
+            System.exit(-1);
+        }
+
+        try {
+            SSLSocketFactory factory = null;
+            try {
+                char[] password = "password".toCharArray();
+                KeyStore ks = KeyStore.getInstance("JKS");
+                KeyStore ts = KeyStore.getInstance("JKS");
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+                SSLContext ctx = SSLContext.getInstance("TLSv1.2");
+                // keystore password (storepass)
+                ks.load(new FileInputStream("clientkeystore"), password);
+                // truststore password (storepass);
+                ts.load(new FileInputStream("clienttruststore"), password);
+                kmf.init(ks, password); // user password (keypass)
+                tmf.init(ts); // keystore can be used as truststore here
+                ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+                factory = ctx.getSocketFactory();
+            } catch (Exception e) {
+                throw new IOException(e.getMessage());
+            }
+            SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+            System.out.println("\nsocket before handshake:\n" + socket + "\n");
+
+            /*
+             * send http request
+             *
+             * See SSLSocketClient.java for more information about why
+             * there is a forced handshake here when using PrintWriters.
+             */
+
+            socket.startHandshake();
+            SSLSession session = socket.getSession();
+            Certificate[] cert = session.getPeerCertificates();
+            String subject = ((X509Certificate) cert[0]).getSubjectX500Principal().getName();
+            String issuer = ((X509Certificate) cert[0]).getIssuerX500Principal().getName(); // Added in question 4
+            String serial = ((X509Certificate) cert[0]).getSerialNumber().toString(); // Added in question 5
+            System.out.println(
+                    "certificate name (subject DN field) on certificate received from server:\n" + subject + "\n");
+            System.out.println("Issuer: " + issuer); // Added in question 4
+            System.out.println("Serial: " + serial); // Added in question 5
+            System.out.println("socket after handshake:\n" + socket + "\n");
+            System.out.println("secure connection established\n\n");
+
+            // Added in project 2 to see protocol and cipher suite
+            System.out.println("Protocol: " + session.getProtocol());
+            System.out.println("Cipher suite: " + session.getCipherSuite());
+
+            BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String msg;
+            
+            boolean running = true;
+            
+            while (running) {
+                System.out.println("\n1. Visa tillgängliga records");
+                System.out.println("2. Läs record");
+                System.out.println("3. Skriv till record");
+                System.out.println("4. Ta bort record");
+                System.out.println("q. Avsluta programmet\n");
+
+                System.out.print(">");
+                String inputChoice = read.readLine();
+                switch (inputChoice) {
+                    case "1":
+                        msg = "viewAll";
+                        out.println(msg);
+                        out.flush();
+                        break;
+                    case "2":
+                        System.out.println("Vilket record vill du kolla på? (recordID)\n>");
+                        String recordID = read.readLine();
+                        msg = "read " + recordID;
+                        out.println(msg);
+                        out.flush();
+                        break;
+                    case "3":
+                        System.out.println("Vilket record vill skriva till? (recordID)\n>");
+                        recordID = read.readLine();
+                        System.out.println("");
+                        msg = "write " + recordID;
+                        out.println(msg);
+                        out.flush();
+                        break;
+                    case "4":
+                        System.out.println("Vilket record vill du ta bort? (recordID)\n>");
+                        recordID = read.readLine();
+                        msg = "delete " + recordID;
+                        out.println(msg);
+                        out.flush();
+                        break;
+                    case "q":
+                        running = false;
+                        continue;
+                    default:
+                        System.out.println("Inte giltigt alternativ!");
+                        continue;
+                }
+                
+                //msg = read.readLine();
+                //if (msg.equalsIgnoreCase("quit")) {
+                    //break;
+                //}
+                
+                
+                //System.out.print("sending '" + msg + "' to server...");
+                //out.println(msg);
+                //out.flush();
+                //System.out.println("done");
+                //System.out.println("received '" + in.readLine() + "' from server\n");
+                System.out.println(in.readLine());
+            }
+            in.close();
+            out.close();
+            read.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-  }
 }
