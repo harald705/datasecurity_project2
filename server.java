@@ -6,13 +6,16 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
+import java.util.Set;
 
 public class server implements Runnable {
     private ServerSocket serverSocket = null;
+    private RecordRepository repo= null;
     private static int numConnectedClients = 0;
 
-    public server(ServerSocket ss) throws IOException {
+    public server(ServerSocket ss, RecordRepository repository) throws IOException {
         serverSocket = ss;
+        repo = repository;
         newListener();
     }
 
@@ -23,6 +26,7 @@ public class server implements Runnable {
             SSLSession session = socket.getSession();
             Certificate[] cert = session.getPeerCertificates();
             String subject = ((X509Certificate) cert[0]).getSubjectX500Principal().getName();
+            
             //String issuer = ((X509Certificate) cert[0]).getIssuerX500Principal().getName(); // Added in question 4
             //String serial = ((X509Certificate) cert[0]).getSerialNumber().toString(); // Added in question 5
             numConnectedClients++;
@@ -40,10 +44,14 @@ public class server implements Runnable {
 
             String clientMsg = null;
             while ((clientMsg = in.readLine()) != null) {
-                String rev = new StringBuilder(clientMsg).reverse().toString();
-                System.out.println("received '" + clientMsg + "' from client");
-                System.out.print("sending '" + rev + "' to client...");
-                out.println(rev);
+                clientMsg = clientMsg.toUpperCase();
+                Request req = RequestParsing.parse(clientMsg);
+                String blabla = repo.handleRequest(subject.substring(3), req);
+                out.println(blabla);
+                // String rev = new StringBuilder(clientMsg).reverse().toString();
+                // System.out.println("received '" + clientMsg + "' from client");
+                // System.out.print("sending '" + rev + "' to client...");
+                //out.println(rev);
                 out.flush();
                 System.out.println("done\n");
             }
@@ -66,7 +74,9 @@ public class server implements Runnable {
     } // calls run()
 
     public static void main(String args[]) {
-        HashSet<MedicalRecord> medicalRecords = ReadSavedFiles.readSavedRecords("records.csv");
+        Set<MedicalRecord> medicalRecords = ReadSavedFiles.readSavedRecords("records.csv");
+        Set<User> users = ReadSavedFiles.readSavedUsers("users.csv");
+        RecordRepository repo = new RecordRepository(medicalRecords, users);
         
         System.out.println("\nServer Started\n");
         int port = -1;
@@ -78,7 +88,7 @@ public class server implements Runnable {
             ServerSocketFactory ssf = getServerSocketFactory(type);
             ServerSocket ss = ssf.createServerSocket(port, 0, InetAddress.getByName(null));
             ((SSLServerSocket) ss).setNeedClientAuth(true); // enables client authentication
-            new server(ss);
+            new server(ss, repo);
         } catch (IOException e) {
             System.out.println("Unable to start Server: " + e.getMessage());
             e.printStackTrace();

@@ -12,6 +12,49 @@ public class RecordRepository {
         this.users = users;
     }
 
+    public synchronized String handleRequest(String name, Request req) {
+        Action action = req.action();
+        String information = req.information();
+        User user = getUser(name);
+        switch (action) {
+            case READ:
+                int recordID = Integer.parseInt(information);
+                MedicalRecord record = getMedicalRecord(recordID);
+                if (allowedRead(user, record)) {
+                    return record.toString();
+                }
+                break;
+            case WRITE:
+                break;
+            case VIEW_ALL:
+                break;
+            case CREATE:
+                break;
+            case DELETE:
+                break;
+        }
+        return null;
+    }
+
+
+    private User getUser(String name) {
+        for (User user : users) {
+            if (user.getName().equals(name)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+
+    private MedicalRecord getMedicalRecord(int recordID) {
+        for (MedicalRecord record : records) {
+            if (record.getRecordID() == recordID) return record;
+        }
+        return null;
+    }
+    
+
 
     private boolean allowedRead(User user, MedicalRecord record) {
         // Agency can read all records

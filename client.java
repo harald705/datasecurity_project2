@@ -40,7 +40,9 @@ public class client {
         try {
             SSLSocketFactory factory = null;
             try {
-                char[] password = "password".toCharArray();
+                //char[] password = "password".toCharArray();
+                Console console = System.console();
+                char[] password = console.readPassword("Keystore password: ");
                 KeyStore ks = KeyStore.getInstance("JKS");
                 KeyStore ts = KeyStore.getInstance("JKS");
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
@@ -102,14 +104,14 @@ public class client {
                 String inputChoice = read.readLine();
                 switch (inputChoice) {
                     case "1":
-                        msg = "viewAll";
+                        msg = "VIEW_ALL";
                         out.println(msg);
                         out.flush();
                         break;
                     case "2":
                         System.out.println("Vilket record vill du kolla på? (recordID)\n>");
                         String recordID = read.readLine();
-                        msg = "read " + recordID;
+                        msg = "READ " + recordID;
                         out.println(msg);
                         out.flush();
                         break;
@@ -117,14 +119,14 @@ public class client {
                         System.out.println("Vilket record vill skriva till? (recordID)\n>");
                         recordID = read.readLine();
                         System.out.println("");
-                        msg = "write " + recordID;
+                        msg = "WRITE " + recordID;
                         out.println(msg);
                         out.flush();
                         break;
                     case "4":
                         System.out.println("Vilket record vill du ta bort? (recordID)\n>");
                         recordID = read.readLine();
-                        msg = "delete " + recordID;
+                        msg = "DELETE " + recordID;
                         out.println(msg);
                         out.flush();
                         break;

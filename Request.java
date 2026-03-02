@@ -1,1 +1,1 @@
-public record Request(Action action, int recordID){}
+public record Request(Action action, String information){}
