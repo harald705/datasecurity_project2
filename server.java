@@ -7,6 +7,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 public class server implements Runnable {
     private ServerSocket serverSocket = null;
@@ -44,10 +45,17 @@ public class server implements Runnable {
 
             String clientMsg = null;
             while ((clientMsg = in.readLine()) != null) {
-                clientMsg = clientMsg.toUpperCase();
+                //clientMsg = clientMsg.toUpperCase();
                 Request req = RequestParsing.parse(clientMsg);
-                String blabla = repo.handleRequest(subject.substring(3), req);
-                out.println(blabla);
+                String requestResponse = repo.handleRequest(subject.substring(3), req);
+                out.println(requestResponse);
+                String logMessage = subject.substring(3) + " --- " + req.action().name() + " " + req.information() + " --- " + 
+                requestResponse + " --- " +LocalDateTime.now().toString();
+
+                ReadSavedFiles.log(logMessage);
+
+                //System.out.println(logMessage);
+
                 // String rev = new StringBuilder(clientMsg).reverse().toString();
                 // System.out.println("received '" + clientMsg + "' from client");
                 // System.out.print("sending '" + rev + "' to client...");
@@ -93,6 +101,21 @@ public class server implements Runnable {
             System.out.println("Unable to start Server: " + e.getMessage());
             e.printStackTrace();
         }
+        new Thread(() -> {
+            try (BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
+
+                String line;
+                while ((line = console.readLine()) != null) {
+                    if (line.equalsIgnoreCase("save")) {
+                        System.out.println("Saving data...");
+                        ReadSavedFiles.writeRecords(repo.getAllRecords());
+                        System.out.println("All records saved.");
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private static ServerSocketFactory getServerSocketFactory(String type) {

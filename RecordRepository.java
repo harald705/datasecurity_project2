@@ -1,15 +1,18 @@
 import java.util.Set;
 import java.util.HashSet;
+import java.lang.StringBuilder;
 
 public class RecordRepository {
     
 
     private Set<MedicalRecord> records;
     private Set<User> users;
+    private int highestID;
 
     public RecordRepository(Set<MedicalRecord> records, Set<User> users) {
         this.records = records;
         this.users = users;
+        highestID = records.size() - 1;
     }
 
     public synchronized String handleRequest(String name, Request req) {
@@ -22,18 +25,70 @@ public class RecordRepository {
                 MedicalRecord record = getMedicalRecord(recordID);
                 if (allowedRead(user, record)) {
                     return record.toString();
+                } else {
+                    return "Ej tillåtet!";
                 }
-                break;
             case WRITE:
-                break;
+                String[] splitInformation = information.split("€");
+                recordID = Integer.parseInt(splitInformation[0]);
+                String newMedicalData = splitInformation[1];
+                record = getMedicalRecord(recordID);
+                if (allowedWrite(user, record)) {
+                    record.changeMedicalData(newMedicalData);
+                    return "Medical data har uppdaterats";
+                } else {
+                    return "Ej tillåtet!";
+                }
+                
             case VIEW_ALL:
-                break;
+                Set<MedicalRecord> authorizedRecords = getAllAuthorizedRecords(user);
+                StringBuilder sb = new StringBuilder();
+                for (MedicalRecord rec : authorizedRecords) {
+                    sb.append(rec);
+                    sb.append("€");
+                }
+                return sb.toString();
             case CREATE:
-                break;
+                String[] createInformationSplit = information.split("€");
+                String patientName = createInformationSplit[0];
+                String nurse = createInformationSplit[1];
+                String division = createInformationSplit[2];
+                String medicalData = createInformationSplit[3];
+                recordID = highestID + 1;
+                highestID++;
+                if (allowedCreate(user, patientName)) {
+                    records.add(new MedicalRecord(patientName, user.getName(), nurse, division, medicalData, recordID));
+                    return "Record lades till!";
+                } else {
+                    return "Ej tillåtet!";
+                }
+                
             case DELETE:
-                break;
+                recordID = Integer.parseInt(information);
+                if (allowedDelete(user)) {
+                    for (MedicalRecord rec : records) {
+                        if (rec.getRecordID() == recordID) {
+                            records.remove(rec);
+                            return "Record har tagits bort";
+                        }
+                    }
+                    return "Record hittades inte";
+                }
+                return "Ej tillåtet!";
         }
         return null;
+    }
+
+
+    // Returns all records that the user has at least read permissions for
+    private Set<MedicalRecord> getAllAuthorizedRecords(User user) {
+        Set<MedicalRecord> authorizedRecords = new HashSet<>();
+        for (MedicalRecord record : records) {
+            if (allowedRead(user, record)) {
+                authorizedRecords.add(record);
+            }
+        }
+        return authorizedRecords;
     }
 
 
@@ -44,6 +99,11 @@ public class RecordRepository {
             }
         }
         return null;
+    }
+
+
+    public Set<MedicalRecord> getAllRecords() {
+        return records;
     }
 
 

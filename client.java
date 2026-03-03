@@ -98,35 +98,50 @@ public class client {
                 System.out.println("2. Läs record");
                 System.out.println("3. Skriv till record");
                 System.out.println("4. Ta bort record");
+                System.out.println("5. Skapa nytt record");
                 System.out.println("q. Avsluta programmet\n");
 
                 System.out.print(">");
                 String inputChoice = read.readLine();
                 switch (inputChoice) {
                     case "1":
-                        msg = "VIEW_ALL";
+                        msg = "VIEW_ALL=0";
                         out.println(msg);
                         out.flush();
                         break;
                     case "2":
-                        System.out.println("Vilket record vill du kolla på? (recordID)\n>");
+                        System.out.print("Vilket record vill du kolla på? (recordID)\n>");
                         String recordID = read.readLine();
-                        msg = "READ " + recordID;
+                        msg = "READ=" + recordID;
                         out.println(msg);
                         out.flush();
                         break;
                     case "3":
-                        System.out.println("Vilket record vill skriva till? (recordID)\n>");
+                        System.out.print("Vilket record vill skriva till? (recordID)\n>");
                         recordID = read.readLine();
-                        System.out.println("");
-                        msg = "WRITE " + recordID;
+                        System.out.print("\n> Ny medical data: ");
+                        String newData = read.readLine();
+                        msg = "WRITE=" + recordID + "€" + newData;
                         out.println(msg);
                         out.flush();
                         break;
                     case "4":
                         System.out.println("Vilket record vill du ta bort? (recordID)\n>");
                         recordID = read.readLine();
-                        msg = "DELETE " + recordID;
+                        msg = "DELETE=" + recordID;
+                        out.println(msg);
+                        out.flush();
+                        break;
+                    case "5":
+                        System.out.println("Patientens namn: ");
+                        String patientName = read.readLine();
+                        System.out.println("Sjuksköterskans namn: ");
+                        String nurse = read.readLine();
+                        System.out.println("Division: ");
+                        String division = read.readLine();
+                        System.out.println("Medical data: ");
+                        String medicalData = read.readLine();
+                        msg = "CREATE=" + patientName + "€" + nurse + "€" + division + "€" + medicalData;
                         out.println(msg);
                         out.flush();
                         break;
@@ -149,7 +164,15 @@ public class client {
                 //out.flush();
                 //System.out.println("done");
                 //System.out.println("received '" + in.readLine() + "' from server\n");
-                System.out.println(in.readLine());
+                
+                // Response from server
+                String response = in.readLine();
+                String[] responseSplit = response.split("€");
+                for (int i = 0; i < responseSplit.length; i++) {
+                    System.out.println(responseSplit[i]);
+                    System.out.println("\n");
+                }
+                //System.out.println(in.readLine());
             }
             in.close();
             out.close();

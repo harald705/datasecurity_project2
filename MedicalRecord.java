@@ -53,8 +53,18 @@ public class MedicalRecord {
     }
 
 
+    public void setRecordID(int newID) {
+        recordID = newID;
+    }
+
+
     public String toString() {
         return ("Name: " + patientName + " Doctor: " + doctor + " Nurse: " + nurse
-            + " Division: " + division + " Medical Data: " + medicalData);
+            + " Division: " + division + " Medical Data: " + medicalData + " Record ID: " + recordID);
+    }
+
+
+    public String toStringCSV() {
+        return (patientName + ", " + doctor + ", " + nurse + ", " + division + ", " + medicalData + ", " + recordID);
     }
 }

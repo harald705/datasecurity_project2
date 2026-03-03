@@ -3,7 +3,9 @@ import java.util.Set;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
-
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class ReadSavedFiles {
     
@@ -63,5 +65,34 @@ public class ReadSavedFiles {
             System.out.println("File is not found");
         }
         return users;
+    }
+
+
+    public static void writeRecords(Set<MedicalRecord> records) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("records.csv"))) {
+            writer.write("patient name, doctor, nurse, division, medical data, recordID");
+            writer.newLine();
+            int index = 0;
+            for (MedicalRecord record : records) {
+                record.setRecordID(index);
+                index++;
+                writer.write(record.toStringCSV());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error!!!!");
+        }
+    }
+
+
+    public static void log(String message) {
+        try {
+            FileWriter writer = new FileWriter("auditLog.txt", true);
+            writer.write(message);
+            writer.write("\n");
+            writer.close();
+        } catch(IOException e) {
+            System.out.println(e);
+        }
     }
 }
