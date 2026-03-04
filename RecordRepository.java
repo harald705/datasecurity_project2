@@ -21,7 +21,12 @@ public class RecordRepository {
         User user = getUser(name);
         switch (action) {
             case READ:
-                int recordID = Integer.parseInt(information);
+                int recordID = 0;
+                try {
+                    recordID = Integer.parseInt(information);
+                } catch(NumberFormatException e) {
+                    return "Du måste skriva in ett tal!";
+                }
                 MedicalRecord record = getMedicalRecord(recordID);
                 if (allowedRead(user, record)) {
                     return record.toString();
@@ -30,8 +35,15 @@ public class RecordRepository {
                 }
             case WRITE:
                 String[] splitInformation = information.split("€");
-                recordID = Integer.parseInt(splitInformation[0]);
-                String newMedicalData = splitInformation[1];
+                try {
+                    recordID = Integer.parseInt(splitInformation[0]);
+                } catch (NumberFormatException e) {
+                    return "Du måste skriva in ett tal!";
+                }
+                String newMedicalData = "";
+                if (splitInformation.length > 1) {
+                    newMedicalData = splitInformation[1];
+                }
                 record = getMedicalRecord(recordID);
                 if (allowedWrite(user, record)) {
                     record.changeMedicalData(newMedicalData);
@@ -50,6 +62,9 @@ public class RecordRepository {
                 return sb.toString();
             case CREATE:
                 String[] createInformationSplit = information.split("€");
+                if (createInformationSplit.length != 4) {
+                    return "Inte tillräckligt med information!";
+                }
                 String patientName = createInformationSplit[0];
                 String nurse = createInformationSplit[1];
                 String division = createInformationSplit[2];
@@ -64,7 +79,11 @@ public class RecordRepository {
                 }
                 
             case DELETE:
-                recordID = Integer.parseInt(information);
+                try {
+                    recordID = Integer.parseInt(information);
+                } catch (NumberFormatException e) {
+                    return "Inte giltigt tal!";
+                }
                 if (allowedDelete(user)) {
                     for (MedicalRecord rec : records) {
                         if (rec.getRecordID() == recordID) {

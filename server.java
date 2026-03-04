@@ -49,8 +49,8 @@ public class server implements Runnable {
                 Request req = RequestParsing.parse(clientMsg);
                 String requestResponse = repo.handleRequest(subject.substring(3), req);
                 out.println(requestResponse);
-                String logMessage = subject.substring(3) + " --- " + req.action().name() + " " + req.information() + " --- " + 
-                requestResponse + " --- " +LocalDateTime.now().toString();
+                String logMessage = LocalDateTime.now().toString() + "---" + subject.substring(3) + " --- " + req.action().name() + " " + req.information() + " --- " + 
+                requestResponse;
 
                 ReadSavedFiles.log(logMessage);
 
